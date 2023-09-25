@@ -96,22 +96,23 @@ def atualiza_temporada(url, temp_path, n_jogos):
             
             # Match Odds
             wd_Chrome.get(f'https://www.flashscore.com.br/jogo/{link}/#/comparacao-de-odds/home-away/tr-incluindo-prol')
-            time.sleep(0.5)
+            time.sleep(1)
             celulas = wd_Chrome.find_elements(By.CSS_SELECTOR,'div.ui-table__row')
             
             for celula in celulas:
                 bookie = celula.find_element(By.CSS_SELECTOR,'img.prematchLogo')
                 bookie = bookie.get_attribute('title')
-                if ((bookie == 'bet365')):
+                if ((bookie == '1xBet')):
                     Odds_H = float(celula.find_elements(By.CSS_SELECTOR,'a.oddsCell__odd')[0].text)
                     Odds_A = float(celula.find_elements(By.CSS_SELECTOR,'a.oddsCell__odd')[1].text)
+                    break
                 else:
                     pass
 
 
             # Over/Under
             wd_Chrome.get(f'https://www.flashscore.com.br/jogo/{link}/#/comparacao-de-odds/acima-abaixo/tr-incluindo-prol')
-            time.sleep(0.5)
+            time.sleep(1)
             celulas = wd_Chrome.find_elements(By.CLASS_NAME,'ui-table__row')
 
 
@@ -128,7 +129,7 @@ def atualiza_temporada(url, temp_path, n_jogos):
 
             # Handicap
             wd_Chrome.get(f'https://www.flashscore.com.br/jogo/{link}/#/comparacao-de-odds/handicap-asiatico/tr-incluindo-prol')
-            time.sleep(0.5)
+            time.sleep(1)
             celulas = wd_Chrome.find_elements(By.CLASS_NAME,'ui-table__row')
 
 
@@ -143,7 +144,7 @@ def atualiza_temporada(url, temp_path, n_jogos):
                 else:
                     pass
 
-            print(Date, Home, Odds_H, Odds_A, Over_Line, Odds_Over, Odds_Under, HA_Line, HA_Odds_H, HA_Odds_A)
+            # print(Date, Home, Odds_H, Odds_A, Over_Line, Odds_Over, Odds_Under, HA_Line, HA_Odds_H, HA_Odds_A)
 
             base_jogos.loc[base_jogos.shape[0],['Date','Season','Season_Time','Time','Home','Away','Home_Pts','Away_Pts','Odds_H','Odds_A','Over_Line','Odds_Over','Odds_Under','HA_Line','HA_Odds_H','HA_Odds_A']] = [
                 Date, Season, League, Time, Home, Away, Home_Pts, Away_Pts, Odds_H, Odds_A, Over_Line, Odds_Over, Odds_Under, HA_Line, HA_Odds_H, HA_Odds_A
