@@ -47,20 +47,51 @@ def cria_alvos(_df):
     # Back Home
     _df.loc[(_df['Home_Pts'] > _df['Away_Pts']), 'Back_Home'] = 1
     _df.loc[(_df['Home_Pts'] < _df['Away_Pts']), 'Back_Home'] = 0
-    
+    _df.loc[(_df['Back_Home'] == 1), 'PL_Home'] = _df['Odds_H'] - 1
+    _df.loc[(_df['Back_Home'] == 0), 'PL_Home'] = - 1
+
     # Back Away
     _df.loc[(_df['Home_Pts'] < _df['Away_Pts']), 'Back_Away'] = 1
     _df.loc[(_df['Home_Pts'] > _df['Away_Pts']), 'Back_Away'] = 0
+    _df.loc[(_df['Back_Away'] == 1), 'PL_Away'] = _df['Odds_A'] - 1
+    _df.loc[(_df['Back_Away'] == 0), 'PL_Away'] = - 1
     
     # Over/Under
     _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) > _df['Over_Line'], 'Back_Over'] = 1
     _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) < _df['Over_Line'], 'Back_Over'] = 0
+    _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) == _df['Over_Line'], 'Back_Over'] = 2
+
+    _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) > _df['Over_Line'], 'Back_Under'] = 0
+    _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) < _df['Over_Line'], 'Back_Under'] = 1
+    _df.loc[(_df['Home_Pts'] + _df['Away_Pts']) == _df['Over_Line'], 'Back_Under'] = 2
+    
+    _df.loc[(_df['Back_Over'] == 1), 'PL_Over'] = _df['Odds_Over'] - 1
+    _df.loc[(_df['Back_Over'] == 0), 'PL_Over'] = - 1
+    _df.loc[(_df['Back_Under'] == 1), 'PL_Under'] = _df['Odds_Under'] - 1
+    _df.loc[(_df['Back_Under'] == 0), 'PL_Under'] = - 1
+    _df.loc[(_df['Back_Over'] == 2), 'PL_Over'] = 0
+    _df.loc[(_df['Back_Under'] == 2), 'PL_Under'] = 0
     
     # HA
+    
+    # Back H
     _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) > _df['Away_Pts'], 'Back_HA_H'] = 1
     _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) < _df['Away_Pts'], 'Back_HA_H'] = 0
     _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) == _df['Away_Pts'], 'Back_HA_H'] = 2
+    # Back A
+    _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) > _df['Away_Pts'], 'Back_HA_A'] = 0
+    _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) < _df['Away_Pts'], 'Back_HA_A'] = 1
+    _df.loc[((_df['Home_Pts'] + _df['HA_Line'])) == _df['Away_Pts'], 'Back_HA_A'] = 2
+    # PL H
+    _df.loc[(_df['Back_HA_H'] == 1), 'PL_HA_H'] = _df['HA_Odds_H'] - 1
+    _df.loc[(_df['Back_HA_H'] == 0), 'PL_HA_H'] = - 1
+    _df.loc[(_df['Back_HA_H'] == 2), 'PL_HA_H'] = 0
+    # PL A
+    _df.loc[(_df['Back_HA_A'] == 1), 'PL_HA_A'] = _df['HA_Odds_A'] - 1
+    _df.loc[(_df['Back_HA_A'] == 0), 'PL_HA_A'] = - 1
+    _df.loc[(_df['Back_HA_A'] == 2), 'PL_HA_A'] = 0
 
+    
     return _df
 
 
@@ -138,4 +169,17 @@ def prepara_df(_df):
     _df['CV_ML'] = (_df[['Odds_H', 'Odds_A']].std(axis=1)) / (_df[['Odds_H', 'Odds_A']].mean(axis=1))
     _df['CV_Over'] = (_df[['Odds_Over', 'Odds_Under']].std(axis=1)) / (_df[['Odds_Over', 'Odds_Under']].mean(axis=1))
     
+    # Custo do retorno
+    _df['Avg_Retornos_H_Liga'] = _df['PL_Home'].rolling(window=10, min_periods=5).mean().reset_index(level=0, drop=True)
+    _df['Avg_Retornos_H_Liga'] = _df['Avg_Retornos_H_Liga'].shift(1)
+    _df['Avg_Retornos_H_Liga'] = _df['Avg_Retornos_H_Liga'].fillna(0)
+    _df['Custo_Retorno_H'] = _df['Odds_H'] / _df['Avg_Retornos_H_Liga']
+    _df['Custo_Retorno_H'] = _df['Custo_Retorno_H'].replace([np.inf, -np.inf], np.nan)
+    
+    _df['Avg_Retornos_A_Liga'] = _df['PL_Away'].rolling(window=10, min_periods=5).mean().reset_index(level=0, drop=True)
+    _df['Avg_Retornos_A_Liga'] = _df['Avg_Retornos_A_Liga'].shift(1)
+    _df['Avg_Retornos_A_Liga'] = _df['Avg_Retornos_A_Liga'].fillna(0)
+    _df['Custo_Retorno_A'] = _df['Odds_H'] / _df['Avg_Retornos_A_Liga']
+    _df['Custo_Retorno_A'] = _df['Custo_Retorno_A'].replace([np.inf, -np.inf], np.nan)
+
     return _df
